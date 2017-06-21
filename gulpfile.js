@@ -1,18 +1,23 @@
 'use strict';
 let gulp = require('gulp');
-let { $exec, gcloud, createPattern, kubeServiceName, gcluster, gclusterExists } = require('./gulp-utils');
 let runSequence = require('run-sequence');
 let replace = require('gulp-replace-task');
 let rename = require('gulp-rename');
+let { $exec, gcloud, createPattern, kubeServiceName, gcluster, gclusterExists, extractMapping } = require('./gulp-utils');
 
 const config = {
-  version: process.env.CIRCLE_SHA1,
+  version: process.env.CIRCLE_SHA1 || 'version',
   domain: 'us.gcr.io',
   serviceKey: process.env.GCLOUD_SERVICE_KEY,
-  projectId: process.env.PROJECT_ID,
-  clusterId: process.env.CLUSTER_ID,
-  zoneId: process.env.ZONE_ID,
+  projectId: process.env.PROJECT_ID || 'projectId',
+  clusterId: process.env.CLUSTER_ID || 'clusterId',
+  zoneId: process.env.ZONE_ID || 'zoneId',
   user: process.env.USER,
+  machineType: process.env.MACHINE_TYPE,
+  diskSize: process.env.DISK_SIZE,
+  network: process.env.NETWORK,
+  numNodes: process.env.NUM_NODES,
+  ports: extractMapping(process.env.PORT_MAPPING)
 };
 
 config.uri = `${config.domain}/${config.projectId}/`;
@@ -53,7 +58,20 @@ gulp.task('dockerPush', (cb) => {
 });
 
 gulp.task('kubeCreateDeploymentConfig', () => {
-  const patterns = createPattern({});
+  const name = `${config.clusterId}-depl`;
+  const selector = `app: ${config.imageName}`;
+  const imageName = config.imageName;
+  const image = config.image;
+  const ports = config.ports.map((port) => `- portContainer: ${port[0]}\n            protocol: "TCP"`).join('\n          ');
+
+  const patterns = createPattern({
+    name,
+    selector,
+    imageName,
+    image,
+    ports
+  });
+
   gulp.src('./templates/kubernetes-deployment-template.yml')
     .pipe(replace({ patterns }))
     .pipe(rename('kubernetes-deployment.yml'))
@@ -65,7 +83,16 @@ gulp.task('kubeDeployDeployment', (cb) => {
 });
 
 gulp.task('kubeCreateServiceConfig', () => {
-  const patterns = createPattern({});
+  const name = `${config.clusterId}-lb`;
+  const selector = `app: ${config.imageName}`;
+  const ports = config.ports.map((port) => `- port: ${port[0]}\n    targetPort: ${port[1]}`).join('\n  ');
+
+  const patterns = createPattern({
+    name,
+    selector,
+    ports
+  });
+
   gulp.src('./templates/kubernetes-service-template.yml')
     .pipe(replace({ patterns }))
     .pipe(rename('kubernetes-service.yml'))
@@ -81,6 +108,25 @@ gulp.task('kubeDeployService', (cb) => {
       return Promise.resolve();
     })
     .then(() => cb());
+});
+
+gulp.task('gclusterCreate', (cb) => {
+  gclusterExists(config.clusterId, config.zoneId, config.projectId).then((exists) => {
+    if (exists) {
+      $exec(gcloud(`
+        container clusters create ${config.clusterId}
+        --machine-type ${config.machineType}
+        --disk-size ${config.diskSize}
+        --network ${config.network}
+        --num-nodes ${config.numNodes}
+        --zone ${config.zoneId}
+        --project ${config.projectId}
+      `)).then(() => cb());
+    }
+    else {
+      cb();
+    }
+  });
 });
 
 gulp.task('nginxDeploy', (cb) => {

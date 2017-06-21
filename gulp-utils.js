@@ -90,6 +90,14 @@ function gclusterExists(clusterId, zoneId, projectId) {
   return gcluster(clusterId, zoneId, projectId).then((cluster) => cluster !== null);
 }
 
+function extractMapping(rawPortMapping) {
+  if (!rawPortMapping) {
+    return [[80, 80]];
+  }
+
+  return JSON.parse(rawPortMapping);
+}
+
 module.exports = {
   $exec,
   gcloud,
@@ -97,5 +105,6 @@ module.exports = {
   kubeService,
   kubeServiceName,
   gcluster,
-  gclusterExists
+  gclusterExists,
+  extractMapping
 };
