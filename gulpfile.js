@@ -1,6 +1,6 @@
 'use strict';
 let gulp = require('gulp');
-let { $exec, gcloud, createPattern, kubeServiceName } = require('./gulp-utils');
+let { $exec, gcloud, createPattern, kubeServiceName, gcluster, gclusterExists } = require('./gulp-utils');
 let runSequence = require('run-sequence');
 let replace = require('gulp-replace-task');
 let rename = require('gulp-rename');
@@ -20,6 +20,7 @@ config.imageName = config.clusterId;
 config.image = `${config.uri}${config.imageName}:${config.version}`;
 
 gulp.task('gcloudUpdate', (cb) => {
+  console.log('env variables: ', process.env);
   $exec(gcloud('--quiet components update'))
     .then(() => gcloud('--quiet components update kubectl'))
     .then(() => cb());

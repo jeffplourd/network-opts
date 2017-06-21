@@ -56,10 +56,41 @@ function kubeServiceName(imageName) {
   });
 }
 
+/**
+ * @param clusterId {string}
+ * @param zoneId {string}
+ * @param projectId {string}
+ * @return {Promise.<string>}
+ */
+function gcluster(clusterId, zoneId, projectId) {
+  return new Promise((resolve) => {
+    $exec(gcloud(`container clusters describe ${clusterId} --zone ${zoneId} --project ${projectId} --format json`))
+      .then((result) => {
+        resolve(result);
+      })
+      .catch(() => {
+        resolve(null);
+      })
+  });
+
+}
+
+/**
+ * @param clusterId {string}
+ * @param zoneId {string}
+ * @param projectId {string}
+ * @return {Promise.<boolean>}
+ */
+function gclusterExists(clusterId, zoneId, projectId) {
+  return gcluster(clusterId, zoneId, projectId).then((cluster) => cluster !== null);
+}
+
 module.exports = {
   $exec,
   gcloud,
   createPattern,
   kubeService,
-  kubeServiceName
+  kubeServiceName,
+  gcluster,
+  gclusterExists
 };
