@@ -1,0 +1,15 @@
+machine:
+  node:
+    version: 8.0
+  services:
+    - docker
+
+deployment:
+  production:
+    branch: production
+    commands:
+      - gulp nginxDeploy
+  staging:
+    branch: staging
+    commands:
+      - gulp nginxDeploy
