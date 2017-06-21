@@ -62,7 +62,7 @@ gulp.task('kubeCreateDeploymentConfig', () => {
   const selector = `app: ${config.imageName}`;
   const imageName = config.imageName;
   const image = config.image;
-  const ports = config.ports.map((port) => `- portContainer: ${port[0]}\n            protocol: "TCP"`).join('\n          ');
+  const ports = config.ports.map((port) => `- containerPort: ${port[0]}\n            protocol: "TCP"`).join('\n          ');
 
   const patterns = createPattern({
     name,
