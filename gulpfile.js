@@ -22,13 +22,13 @@ config.image = `${config.uri}${config.imageName}:${config.version}`;
 gulp.task('gcloudUpdate', (cb) => {
   console.log('env variables: ', process.env);
   $exec(gcloud('--quiet components update'))
-    .then(() => gcloud('--quiet components update kubectl'))
+    .then(() => $exec(gcloud('--quiet components update kubectl')))
     .then(() => cb());
 });
 
 gulp.task('gcloudAuth', (cb) => {
   $exec(`echo ${config.serviceKey} | base64 --decode -i > ./gcloud-service-key.json`)
-    .then(() => gcloud('auth activate-service-account --key-file ./gcloud-service-key.json'))
+    .then(() => $exec(gcloud('auth activate-service-account --key-file ./gcloud-service-key.json')))
     .then(() => cb());
 });
 

@@ -2,6 +2,11 @@
 let _ = require('lodash');
 let { exec } = require('child_process');
 
+/**
+ * @param cmd {string}
+ * @param options {object}
+ * @return {Promise.<any>}
+ */
 function $exec(cmd, options = {}) {
   options['env'] = _.assign({}, process.env, options.env || {});
 
