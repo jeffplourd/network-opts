@@ -25,7 +25,6 @@ config.imageName = config.clusterId;
 config.image = `${config.uri}${config.imageName}:${config.version}`;
 
 gulp.task('gcloudUpdate', (cb) => {
-  console.log('env variables: ', process.env);
   $exec(gcloud('--quiet components update'))
     .then(() => $exec(gcloud('--quiet components update kubectl')))
     .then(() => cb());
