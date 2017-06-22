@@ -134,6 +134,7 @@ gulp.task('nginxDeploy', (cb) => {
     'gcloudAuth',
     'gcloudConfig',
     'dockerBuild',
+    'dockerPush',
     'kubeCreateDeploymentConfig',
     'kubeDeployDeployment',
     'kubeCreateServiceConfig',
